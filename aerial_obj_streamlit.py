@@ -1,234 +1,68 @@
-{
-  "nbformat": 4,
-  "nbformat_minor": 0,
-  "metadata": {
-    "colab": {
-      "provenance": [],
-      "authorship_tag": "ABX9TyO4XfbU9597QhPpbDxifi6n",
-      "include_colab_link": true
-    },
-    "kernelspec": {
-      "name": "python3",
-      "display_name": "Python 3"
-    },
-    "language_info": {
-      "name": "python"
-    }
-  },
-  "cells": [
-    {
-      "cell_type": "markdown",
-      "metadata": {
-        "id": "view-in-github",
-        "colab_type": "text"
-      },
-      "source": [
-        "<a href=\"https://colab.research.google.com/github/vaidegiarch/aerial-obj-classification/blob/main/aerial_obj_streamlit.ipynb\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
-      ]
-    },
-    {
-      "cell_type": "code",
-      "source": [
-        "!pip install -q streamlit\n",
-        "!wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64\n",
-        "!chmod +x cloudflared-linux-amd64\n",
-        "import subprocess\n",
-        "subprocess.Popen([\"./cloudflared-linux-amd64\", \"tunnel\", \"--url\", \"http://localhost:8501\"])\n",
-        "!nohup /content/cloudflared-linux-amd64 tunnel --url http://localhost:8501 &"
-      ],
-      "metadata": {
-        "colab": {
-          "base_uri": "https://localhost:8080/"
-        },
-        "id": "Mv3lDbW-Kx0v",
-        "outputId": "6d2f24a9-a813-49c2-a63d-005c13ac918a"
-      },
-      "execution_count": 21,
-      "outputs": [
-        {
-          "output_type": "stream",
-          "name": "stdout",
-          "text": [
-            "--2026-04-25 14:53:28--  https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64\n",
-            "Resolving github.com (github.com)... 140.82.114.3\n",
-            "Connecting to github.com (github.com)|140.82.114.3|:443... connected.\n",
-            "HTTP request sent, awaiting response... 302 Found\n",
-            "Location: https://github.com/cloudflare/cloudflared/releases/download/2026.3.0/cloudflared-linux-amd64 [following]\n",
-            "--2026-04-25 14:53:28--  https://github.com/cloudflare/cloudflared/releases/download/2026.3.0/cloudflared-linux-amd64\n",
-            "Reusing existing connection to github.com:443.\n",
-            "HTTP request sent, awaiting response... 302 Found\n",
-            "Location: https://release-assets.githubusercontent.com/github-production-release-asset/106867604/731ab2f8-6b77-4adb-a7b3-1104525e9d72?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-04-25T15%3A33%3A30Z&rscd=attachment%3B+filename%3Dcloudflared-linux-amd64&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-04-25T14%3A32%3A46Z&ske=2026-04-25T15%3A33%3A30Z&sks=b&skv=2018-11-09&sig=eAnZT7lzxel8Xv1slFvIPrsZm3fdj%2FYqfCSN3kzXXDA%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc3NzEzMDU2NCwibmJmIjoxNzc3MTI4NzY0LCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.pE9kQMjV3g8-4TXCoejOgYdkfCSfQrS8a4HzxqtHb_E&response-content-disposition=attachment%3B%20filename%3Dcloudflared-linux-amd64&response-content-type=application%2Foctet-stream [following]\n",
-            "--2026-04-25 14:53:28--  https://release-assets.githubusercontent.com/github-production-release-asset/106867604/731ab2f8-6b77-4adb-a7b3-1104525e9d72?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-04-25T15%3A33%3A30Z&rscd=attachment%3B+filename%3Dcloudflared-linux-amd64&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-04-25T14%3A32%3A46Z&ske=2026-04-25T15%3A33%3A30Z&sks=b&skv=2018-11-09&sig=eAnZT7lzxel8Xv1slFvIPrsZm3fdj%2FYqfCSN3kzXXDA%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc3NzEzMDU2NCwibmJmIjoxNzc3MTI4NzY0LCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.pE9kQMjV3g8-4TXCoejOgYdkfCSfQrS8a4HzxqtHb_E&response-content-disposition=attachment%3B%20filename%3Dcloudflared-linux-amd64&response-content-type=application%2Foctet-stream\n",
-            "Resolving release-assets.githubusercontent.com (release-assets.githubusercontent.com)... 185.199.111.133, 185.199.109.133, 185.199.108.133, ...\n",
-            "Connecting to release-assets.githubusercontent.com (release-assets.githubusercontent.com)|185.199.111.133|:443... connected.\n",
-            "HTTP request sent, awaiting response... 200 OK\n",
-            "Length: 39667364 (38M) [application/octet-stream]\n",
-            "Saving to: ‘cloudflared-linux-amd64.1’\n",
-            "\n",
-            "cloudflared-linux-a 100%[===================>]  37.83M   131MB/s    in 0.3s    \n",
-            "\n",
-            "2026-04-25 14:53:29 (131 MB/s) - ‘cloudflared-linux-amd64.1’ saved [39667364/39667364]\n",
-            "\n",
-            "nohup: appending output to 'nohup.out'\n"
-          ]
-        }
-      ]
-    },
-    {
-      "cell_type": "code",
-      "source": [],
-      "metadata": {
-        "id": "ooZEpzJDKzMw"
-      },
-      "execution_count": null,
-      "outputs": []
-    },
-    {
-      "cell_type": "code",
-      "source": [
-        "from tensorflow.keras.models import load_model\n",
-        "\n",
-        "model = load_model(\"best_cnn_model.keras\")"
-      ],
-      "metadata": {
-        "id": "DFtgW-p1Jy4p"
-      },
-      "execution_count": 22,
-      "outputs": []
-    },
-    {
-      "cell_type": "code",
-      "source": [
-        "%%writefile app.py\n",
-        "\n",
-        "import streamlit as st\n",
-        "import numpy as np\n",
-        "from tensorflow.keras.models import load_model\n",
-        "from PIL import Image\n",
-        "\n",
-        "# Load trained model\n",
-        "model = load_model(\"best_cnn_model.keras\")\n",
-        "\n",
-        "# Title\n",
-        "st.title(\"🦅 Bird vs 🚁 Drone Classifier\")\n",
-        "st.write(\"Upload an image to classify whether it's a Bird or a Drone\")\n",
-        "\n",
-        "# ---- Prediction Function with TTA ----\n",
-        "def predict_tta(model, img_array):\n",
-        "    preds = []\n",
-        "\n",
-        "    # Original\n",
-        "    preds.append(model.predict(img_array, verbose=0)[0][0])\n",
-        "\n",
-        "    # Horizontal flip\n",
-        "    flipped = np.flip(img_array, axis=2)\n",
-        "    preds.append(model.predict(flipped, verbose=0)[0][0])\n",
-        "\n",
-        "    # Rotate 90°\n",
-        "    rotated1 = np.rot90(img_array, k=1, axes=(1, 2))\n",
-        "    preds.append(model.predict(rotated1, verbose=0)[0][0])\n",
-        "\n",
-        "    # Rotate 180°\n",
-        "    rotated2 = np.rot90(img_array, k=2, axes=(1, 2))\n",
-        "    preds.append(model.predict(rotated2, verbose=0)[0][0])\n",
-        "\n",
-        "    return np.mean(preds)\n",
-        "\n",
-        "# Upload file\n",
-        "uploaded_file = st.file_uploader(\"Choose an image...\", type=[\"jpg\", \"jpeg\", \"png\"])\n",
-        "\n",
-        "if uploaded_file is not None:\n",
-        "\n",
-        "    # Display uploaded image\n",
-        "    image = Image.open(uploaded_file).convert(\"RGB\")\n",
-        "    st.image(image, caption=\"Uploaded Image\", width=\"stretch\")\n",
-        "\n",
-        "    # ---- Preprocess ----\n",
-        "    img = image.resize((224, 224))\n",
-        "    img = np.array(img) / 255.0\n",
-        "    img = np.expand_dims(img, axis=0)\n",
-        "\n",
-        "    # ---- Predict ----\n",
-        "    prediction = predict_tta(model, img)\n",
-        "\n",
-        "    # ---- Display raw prediction ----\n",
-        "    st.write(f\"Raw prediction score: {prediction:.3f}\")\n",
-        "\n",
-        "    # ---- Classification Logic ----\n",
-        "    if prediction > 0.75:\n",
-        "        label = \"🚁 Drone\"\n",
-        "        confidence = prediction\n",
-        "    elif prediction < 0.30:\n",
-        "        label = \"🦅 Bird\"\n",
-        "        confidence = 1 - prediction\n",
-        "    else:\n",
-        "        label = \"⚠️ Not Sure\"\n",
-        "        confidence = prediction\n",
-        "\n",
-        "    # ---- Output ----\n",
-        "    st.subheader(f\"Prediction: {label}\")\n",
-        "    st.write(f\"Confidence: {confidence:.2f}\")"
-      ],
-      "metadata": {
-        "colab": {
-          "base_uri": "https://localhost:8080/"
-        },
-        "id": "LovtQZz-Kfjv",
-        "outputId": "d7cd4257-4fda-4d6d-9cbc-d9b3aac0798c"
-      },
-      "execution_count": 23,
-      "outputs": [
-        {
-          "output_type": "stream",
-          "name": "stdout",
-          "text": [
-            "Overwriting app.py\n"
-          ]
-        }
-      ]
-    },
-    {
-      "cell_type": "code",
-      "source": [
-        "!streamlit run /content/app.py &>/content/logs.txt &"
-      ],
-      "metadata": {
-        "id": "kLxT9KRtK7cI"
-      },
-      "execution_count": 24,
-      "outputs": []
-    },
-    {
-      "cell_type": "code",
-      "source": [
-        "!grep -o 'https://.*\\.trycloudflare.com' nohup.out | head -n 1 | xargs -I {} echo \"Your tunnel url {}\""
-      ],
-      "metadata": {
-        "colab": {
-          "base_uri": "https://localhost:8080/"
-        },
-        "id": "Xl40nwA2K_t4",
-        "outputId": "c5d994dd-9004-4938-d191-be9619945d8c"
-      },
-      "execution_count": 25,
-      "outputs": [
-        {
-          "output_type": "stream",
-          "name": "stdout",
-          "text": [
-            "Your tunnel url https://watching-drain-sculpture-pda.trycloudflare.com\n"
-          ]
-        }
-      ]
-    },
-    {
-      "cell_type": "code",
-      "source": [],
-      "metadata": {
-        "id": "GbkDTyywLCSv"
-      },
-      "execution_count": null,
-      "outputs": []
-    }
-  ]
-}
+import streamlit as st
+import numpy as np
+from tensorflow.keras.models import load_model
+from PIL import Image
+
+# Load model (cached to avoid reloading every time)
+@st.cache_resource
+def load_my_model():
+    return load_model("best_cnn_model.keras")
+
+model = load_my_model()
+
+# Title
+st.title("🦅 Bird vs 🚁 Drone Classifier")
+st.write("Upload an image to classify whether it's a Bird or a Drone")
+
+# ---- Prediction Function with TTA ----
+def predict_tta(model, img_array):
+    preds = []
+
+    # Original
+    preds.append(model.predict(img_array, verbose=0)[0][0])
+
+    # Horizontal flip
+    flipped = np.flip(img_array, axis=2)
+    preds.append(model.predict(flipped, verbose=0)[0][0])
+
+    # Rotate 90°
+    rotated1 = np.rot90(img_array, k=1, axes=(1, 2))
+    preds.append(model.predict(rotated1, verbose=0)[0][0])
+
+    # Rotate 180°
+    rotated2 = np.rot90(img_array, k=2, axes=(1, 2))
+    preds.append(model.predict(rotated2, verbose=0)[0][0])
+
+    return np.mean(preds)
+
+# Upload file
+uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+
+if uploaded_file is not None:
+
+    image = Image.open(uploaded_file).convert("RGB")
+    st.image(image, caption="Uploaded Image", use_container_width=True)
+
+    # ---- Preprocess ----
+    img = image.resize((224, 224))
+    img = np.array(img) / 255.0
+    img = np.expand_dims(img, axis=0)
+
+    # ---- Predict ----
+    prediction = predict_tta(model, img)
+
+    st.write(f"Raw prediction score: {prediction:.3f}")
+
+    # ---- Classification Logic ----
+    if prediction > 0.75:
+        label = "🚁 Drone"
+        confidence = prediction
+    elif prediction < 0.30:
+        label = "🦅 Bird"
+        confidence = 1 - prediction
+    else:
+        label = "⚠️ Not Sure"
+        confidence = prediction
+
+    st.subheader(f"Prediction: {label}")
+    st.write(f"Confidence: {confidence:.2f}")
