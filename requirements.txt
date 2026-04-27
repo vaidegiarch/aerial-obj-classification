@@ -1,4 +1,5 @@
-app.py
-requirements.txt
-runtime.txt
-best_cnn_model.keras
+streamlit==1.33.0
+tensorflow-cpu==2.15.0
+numpy==1.24.3
+pillow==9.5.0
+h5py==3.9.0
